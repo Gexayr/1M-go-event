@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"go-event-registration/pkg/risk"
+
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
 	"gorm.io/gorm"
@@ -56,6 +58,22 @@ func RegisterEventHandler(db *gorm.DB) gin.HandlerFunc {
 			log.Printf("Error saving event to database: %v", err)
 			c.Error(err)
 			return
+		}
+
+		// Calculate risk
+		riskScore, err := risk.CalculateRisk(evt, db)
+		if err != nil {
+			log.Printf("Error calculating risk: %v", err)
+			// We continue even if risk calculation fails, or we could return error
+		} else {
+			evt.RiskScore = riskScore
+			if err := db.Model(&evt).Update("risk_score", riskScore).Error; err != nil {
+				log.Printf("Error updating risk score: %v", err)
+			}
+
+			if riskScore > 70 {
+				log.Printf("HIGH RISK EVENT: ClientID=%s, EventType=%s, Score=%d", evt.ClientID, evt.EventType, riskScore)
+			}
 		}
 
 		c.JSON(http.StatusCreated, RegisterEventResponse{

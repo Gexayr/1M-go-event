@@ -7,7 +7,7 @@ import (
 	"gorm.io/gorm"
 
 	"go-event-registration/configs"
-	"go-event-registration/internal/event"
+	"go-event-registration/internal/models"
 )
 
 // Init opens a DB connection and performs migrations.
@@ -17,7 +17,7 @@ func Init(cfg *configs.Config) *gorm.DB {
 		log.Fatalf("failed to connect to database: %v", err)
 	}
 
-	if err := database.AutoMigrate(&event.Event{}); err != nil {
+	if err := database.AutoMigrate(&models.Event{}); err != nil {
 		log.Fatalf("failed to migrate database: %v", err)
 	}
 

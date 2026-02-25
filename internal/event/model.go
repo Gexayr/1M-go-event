@@ -1,19 +1,12 @@
 package event
 
 import (
+	"go-event-registration/internal/models"
 	"time"
-
-	"gorm.io/datatypes"
 )
 
 // Event represents the database table structure
-type Event struct {
-	ID        uint           `gorm:"primaryKey" json:"id"`
-	ClientID  string         `gorm:"not null" json:"client_id"`
-	EventType string         `gorm:"not null" json:"event_type"`
-	Timestamp time.Time      `gorm:"not null" json:"timestamp"`
-	Metadata  datatypes.JSON `gorm:"type:jsonb" json:"metadata"`
-}
+type Event = models.Event
 
 // RegisterEventRequest represents the incoming JSON body
 type RegisterEventRequest struct {
