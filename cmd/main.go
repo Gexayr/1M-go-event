@@ -7,6 +7,7 @@ import (
 
 	"go-event-registration/configs"
 	"go-event-registration/internal/event"
+	"go-event-registration/pkg/alert"
 	"go-event-registration/pkg/db"
 	"go-event-registration/pkg/middleware"
 )
@@ -15,6 +16,9 @@ func main() {
 	cfg := configs.LoadConfig()
 
 	database := db.Init(cfg)
+
+	// Initialize alert module
+	alert.Init(cfg.TelegramBotToken, cfg.TelegramChatID)
 
 	r := gin.New()
 	r.Use(middleware.LoggerMiddleware())

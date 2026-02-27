@@ -3,8 +3,10 @@ package configs
 import "os"
 
 type Config struct {
-	DatabaseURL string
-	Port        string
+	DatabaseURL      string
+	Port             string
+	TelegramBotToken string
+	TelegramChatID   string
 }
 
 func LoadConfig() *Config {
@@ -19,7 +21,9 @@ func LoadConfig() *Config {
 	}
 
 	return &Config{
-		DatabaseURL: dsn,
-		Port:        port,
+		DatabaseURL:      dsn,
+		Port:             port,
+		TelegramBotToken: os.Getenv("TELEGRAM_BOT_TOKEN"),
+		TelegramChatID:   os.Getenv("TELEGRAM_CHAT_ID"),
 	}
 }

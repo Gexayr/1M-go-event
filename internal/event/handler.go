@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"go-event-registration/pkg/alert"
 	"go-event-registration/pkg/risk"
 
 	"github.com/gin-gonic/gin"
@@ -71,8 +72,11 @@ func RegisterEventHandler(db *gorm.DB) gin.HandlerFunc {
 				log.Printf("Error updating risk score: %v", err)
 			}
 
-			if riskScore > 70 {
+			if riskScore >= 70 {
 				log.Printf("HIGH RISK EVENT: ClientID=%s, EventType=%s, Score=%d", evt.ClientID, evt.EventType, riskScore)
+				if err := alert.SendHighRiskAlert(evt); err != nil {
+					log.Printf("Error sending telegram alert: %v", err)
+				}
 			}
 		}
 
