@@ -6,9 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"go-event-registration/configs"
+	"go-event-registration/internal/alert"
+	"go-event-registration/internal/dashboard"
 	"go-event-registration/internal/event"
-	"go-event-registration/pkg/alert"
-	"go-event-registration/pkg/dashboard"
 	"go-event-registration/pkg/db"
 	"go-event-registration/pkg/middleware"
 )

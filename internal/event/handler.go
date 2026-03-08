@@ -2,12 +2,11 @@ package event
 
 import (
 	"encoding/json"
+	"go-event-registration/internal/alert"
+	"go-event-registration/internal/risk"
 	"log"
 	"net/http"
 	"time"
-
-	"go-event-registration/pkg/alert"
-	"go-event-registration/pkg/risk"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/datatypes"
