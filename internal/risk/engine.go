@@ -13,16 +13,16 @@ func CalculateRisk(evt models.Event, db *gorm.DB) (int, error) {
 	score := 0
 
 	// Rule 1: login_failed event type
-	if evt.EventType == "login_failed" {
+	if evt.EventType == "failed_login" {
 		score += 30
 	}
 
-	// Rule 2: more than 5 login_failed events for same client in last 10 minutes
-	if evt.EventType == "login_failed" {
+	// Rule 2: more than 5 failed_login events for same client in last 10 minutes
+	if evt.EventType == "failed_login" {
 		var count int64
 		tenMinutesAgo := time.Now().Add(-10 * time.Minute)
 		err := db.Model(&models.Event{}).
-			Where("client_id = ? AND event_type = ? AND timestamp > ?", evt.ClientID, "login_failed", tenMinutesAgo).
+			Where("client_id = ? AND event_type = ? AND timestamp > ?", evt.ClientID, "failed_login", tenMinutesAgo).
 			Count(&count).Error
 		if err != nil {
 			return 0, err
