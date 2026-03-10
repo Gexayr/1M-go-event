@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"time"
@@ -38,9 +39,9 @@ func SendHighRiskAlert(event models.Event) error {
 	}
 
 	message := fmt.Sprintf(
-		"🚨 *HIGH RISK EVENT*\n\n*Client:* %s\n*Type:* %s\n*Score:* %d\n*Time:* %s",
-		event.ClientID,
-		event.EventType,
+		"🚨 <b>HIGH RISK EVENT</b>\n\n<b>Client:</b> %s\n<b>Type:</b> %s\n<b>Score:</b> %d\n<b>Time:</b> %s",
+		html.EscapeString(event.ClientID),
+		html.EscapeString(event.EventType),
 		event.RiskScore,
 		event.Timestamp.Format(time.RFC3339),
 	)
@@ -48,7 +49,7 @@ func SendHighRiskAlert(event models.Event) error {
 	payload := telegramPayload{
 		ChatID:    chatID,
 		Text:      message,
-		ParseMode: "Markdown",
+		ParseMode: "HTML",
 	}
 
 	payloadBytes, err := json.Marshal(payload)
