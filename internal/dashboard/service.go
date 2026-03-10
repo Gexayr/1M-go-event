@@ -15,8 +15,9 @@ func NewService(queries *Queries) *Service {
 }
 
 type EventsResponse struct {
-	Total int64          `json:"total"`
-	Data  []models.Event `json:"data"`
+	Total      int64          `json:"total"`
+	TotalPages int64          `json:"total_pages"`
+	Data       []models.Event `json:"data"`
 }
 
 func (s *Service) GetEvents(ctx context.Context, filters EventFilters) (*EventsResponse, error) {
@@ -29,9 +30,15 @@ func (s *Service) GetEvents(ctx context.Context, filters EventFilters) (*EventsR
 		return nil, err
 	}
 
+	totalPages := int64(0)
+	if filters.Limit > 0 {
+		totalPages = (total + int64(filters.Limit) - 1) / int64(filters.Limit)
+	}
+
 	return &EventsResponse{
-		Total: total,
-		Data:  events,
+		Total:      total,
+		TotalPages: totalPages,
+		Data:       events,
 	}, nil
 }
 
