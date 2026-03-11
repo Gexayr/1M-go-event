@@ -7,11 +7,11 @@ import (
 )
 
 type Service struct {
-	queries *Queries
+	repo *Repository
 }
 
-func NewService(queries *Queries) *Service {
-	return &Service{queries: queries}
+func NewService(repo *Repository) *Service {
+	return &Service{repo: repo}
 }
 
 type EventsResponse struct {
@@ -25,7 +25,7 @@ func (s *Service) GetEvents(ctx context.Context, filters EventFilters) (*EventsR
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	events, total, err := s.queries.GetFilteredEvents(ctx, filters)
+	events, total, err := s.repo.GetFilteredEvents(ctx, filters)
 	if err != nil {
 		return nil, err
 	}
@@ -47,5 +47,41 @@ func (s *Service) GetStats(ctx context.Context) (*DashboardStats, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	return s.queries.GetDashboardStats(ctx)
+	return s.repo.GetDashboardStats(ctx)
+}
+
+func (s *Service) GetRiskOverTime(ctx context.Context, filters RiskOverTimeFilters) (*RiskOverTimeResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	data, err := s.repo.GetRiskOverTime(ctx, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RiskOverTimeResponse{Data: data}, nil
+}
+
+func (s *Service) GetRiskDistribution(ctx context.Context) (*RiskDistributionResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	data, err := s.repo.GetRiskDistribution(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &RiskDistributionResponse{Data: data}, nil
+}
+
+func (s *Service) GetEventsPerClient(ctx context.Context) (*EventsPerClientResponse, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	data, err := s.repo.GetEventsPerClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &EventsPerClientResponse{Data: data}, nil
 }

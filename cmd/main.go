@@ -22,8 +22,8 @@ func main() {
 	alert.Init(cfg.TelegramBotToken, cfg.TelegramChatID)
 
 	// Initialize Dashboard
-	dashboardQueries := dashboard.NewQueries(database)
-	dashboardService := dashboard.NewService(dashboardQueries)
+	dashboardRepo := dashboard.NewRepository(database)
+	dashboardService := dashboard.NewService(dashboardRepo)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
 
 	r := gin.New()
