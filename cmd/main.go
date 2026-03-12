@@ -9,6 +9,7 @@ import (
 	"go-event-registration/internal/alert"
 	"go-event-registration/internal/dashboard"
 	"go-event-registration/internal/event"
+	"go-event-registration/internal/events"
 	"go-event-registration/pkg/db"
 	"go-event-registration/pkg/middleware"
 )
@@ -25,6 +26,11 @@ func main() {
 	dashboardRepo := dashboard.NewRepository(database)
 	dashboardService := dashboard.NewService(dashboardRepo)
 	dashboardHandler := dashboard.NewHandler(dashboardService)
+
+	// Initialize Events
+	eventsRepo := events.NewRepository(database)
+	eventsService := events.NewService(eventsRepo)
+	eventsHandler := events.NewHandler(eventsService)
 
 	r := gin.New()
 	r.Use(middleware.LoggerMiddleware())
@@ -47,6 +53,7 @@ func main() {
 	})
 
 	r.POST("/events", event.RegisterEventHandler(database))
+	r.GET("/api/events/:id", eventsHandler.GetEventDetails)
 
 	// Register Dashboard routes
 	dashboard.RegisterRoutes(r, dashboardHandler)
