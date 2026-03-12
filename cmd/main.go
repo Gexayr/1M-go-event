@@ -7,6 +7,7 @@ import (
 
 	"go-event-registration/configs"
 	"go-event-registration/internal/alert"
+	"go-event-registration/internal/alerts"
 	"go-event-registration/internal/dashboard"
 	"go-event-registration/internal/event"
 	"go-event-registration/internal/events"
@@ -31,6 +32,11 @@ func main() {
 	eventsRepo := events.NewRepository(database)
 	eventsService := events.NewService(eventsRepo)
 	eventsHandler := events.NewHandler(eventsService)
+
+	// Initialize Alerts
+	alertsRepo := alerts.NewRepository(database)
+	alertsService := alerts.NewService(alertsRepo)
+	alertsHandler := alerts.NewHandler(alertsService)
 
 	r := gin.New()
 	r.Use(middleware.LoggerMiddleware())
@@ -57,6 +63,9 @@ func main() {
 
 	// Register Dashboard routes
 	dashboard.RegisterRoutes(r, dashboardHandler)
+
+	// Register Alerts routes
+	alerts.RegisterRoutes(r, alertsHandler)
 
 	log.Printf("Server starting on port %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
