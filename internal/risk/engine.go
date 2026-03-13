@@ -2,7 +2,10 @@ package risk
 
 import (
 	"encoding/json"
+	"fmt"
 	"go-event-registration/internal/models"
+	"go-event-registration/internal/rules"
+	"strconv"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,9 +15,38 @@ import (
 func CalculateRisk(evt models.Event, db *gorm.DB) (int, error) {
 	score := 0
 
-	// Rule 1: login_failed event type
-	if evt.EventType == "failed_login" {
-		score += 30
+	// Load enabled rules from database
+	var activeRules []rules.RiskRule
+	if err := db.Where("enabled = ?", true).Find(&activeRules).Error; err != nil {
+		return 0, err
+	}
+
+	var metadata map[string]interface{}
+	if len(evt.Metadata) > 0 {
+		if err := json.Unmarshal(evt.Metadata, &metadata); err != nil {
+			// Log error but continue with other rules
+			fmt.Printf("failed to unmarshal metadata: %v\n", err)
+		}
+	}
+
+	// Evaluate dynamic rules
+	for _, rule := range activeRules {
+		if evt.EventType == rule.EventType {
+			if metadata == nil {
+				// If no metadata but rule expects a field, skip or fail?
+				// Usually skip as condition cannot be met.
+				continue
+			}
+
+			val, ok := metadata[rule.ConditionField]
+			if !ok {
+				continue
+			}
+
+			if evaluateCondition(val, rule.ConditionOperator, rule.ConditionValue) {
+				score += rule.Score
+			}
+		}
 	}
 
 	// Rule 2: more than 5 failed_login events for same client in last 10 minutes
@@ -30,26 +62,6 @@ func CalculateRisk(evt models.Event, db *gorm.DB) (int, error) {
 
 		if count > 5 {
 			score += 50
-		}
-	}
-
-	// Rule 3: withdrawal AND amount > 10000
-	if evt.EventType == "withdrawal" {
-		var metadata map[string]interface{}
-		if err := json.Unmarshal(evt.Metadata, &metadata); err == nil {
-			if amount, ok := metadata["amount"].(float64); ok && amount > 10000 {
-				score += 70
-			}
-		}
-	}
-
-	// Rule 4: deposit AND amount > 5000
-	if evt.EventType == "deposit" {
-		var metadata map[string]interface{}
-		if err := json.Unmarshal(evt.Metadata, &metadata); err == nil {
-			if amount, ok := metadata["amount"].(float64); ok && amount > 5000 {
-				score += 40
-			}
 		}
 	}
 
@@ -105,4 +117,44 @@ func CalculateRisk(evt models.Event, db *gorm.DB) (int, error) {
 	}
 
 	return score, nil
+}
+
+func evaluateCondition(actual interface{}, operator string, target string) bool {
+	// For simplicity, we'll try to convert everything to float64 if it's a number
+	// or compare as strings.
+
+	actualStr := fmt.Sprintf("%v", actual)
+
+	switch operator {
+	case ">":
+		a, err1 := strconv.ParseFloat(actualStr, 64)
+		t, err2 := strconv.ParseFloat(target, 64)
+		if err1 == nil && err2 == nil {
+			return a > t
+		}
+	case "<":
+		a, err1 := strconv.ParseFloat(actualStr, 64)
+		t, err2 := strconv.ParseFloat(target, 64)
+		if err1 == nil && err2 == nil {
+			return a < t
+		}
+	case ">=":
+		a, err1 := strconv.ParseFloat(actualStr, 64)
+		t, err2 := strconv.ParseFloat(target, 64)
+		if err1 == nil && err2 == nil {
+			return a >= t
+		}
+	case "<=":
+		a, err1 := strconv.ParseFloat(actualStr, 64)
+		t, err2 := strconv.ParseFloat(target, 64)
+		if err1 == nil && err2 == nil {
+			return a <= t
+		}
+	case "==":
+		return actualStr == target
+	case "!=":
+		return actualStr != target
+	}
+
+	return false
 }

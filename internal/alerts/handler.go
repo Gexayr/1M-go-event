@@ -37,6 +37,9 @@ func (h *Handler) GetAlertStats(c *gin.Context) {
 }
 
 func RegisterRoutes(r *gin.Engine, h *Handler) {
-	r.GET("/api/alerts", h.GetAlerts)
-	r.GET("/api/alerts/stats", h.GetAlertStats)
+	api := r.Group("/api")
+	{
+		api.GET("/alerts", h.GetAlerts)
+		api.GET("/alerts/stats", h.GetAlertStats)
+	}
 }
