@@ -150,7 +150,7 @@ func evaluateCondition(actual interface{}, operator string, target string) bool 
 		if err1 == nil && err2 == nil {
 			return a <= t
 		}
-	case "==":
+	case "=":
 		return actualStr == target
 	case "!=":
 		return actualStr != target
