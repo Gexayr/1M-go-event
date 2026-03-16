@@ -12,6 +12,7 @@ import (
 	"go-event-registration/internal/event"
 	"go-event-registration/internal/events"
 	"go-event-registration/internal/reports"
+	"go-event-registration/internal/risk"
 	"go-event-registration/internal/rules"
 	"go-event-registration/pkg/db"
 	"go-event-registration/pkg/middleware"
@@ -50,6 +51,11 @@ func main() {
 	rulesService := rules.NewService(rulesRepo)
 	rulesHandler := rules.NewHandler(rulesService)
 
+	// Initialize Risk Profile
+	riskRepo := risk.NewRepository(database)
+	riskService := risk.NewService(riskRepo)
+	riskHandler := risk.NewHandler(riskService)
+
 	// Auto Migrate
 	database.AutoMigrate(&rules.RiskRule{})
 
@@ -87,6 +93,9 @@ func main() {
 
 	// Register Rules routes
 	rules.RegisterRoutes(r, rulesHandler)
+
+	// Register Risk routes
+	risk.RegisterRoutes(r, riskHandler)
 
 	log.Printf("Server starting on port %s", cfg.Port)
 	if err := r.Run(":" + cfg.Port); err != nil {
