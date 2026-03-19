@@ -1,0 +1,4 @@
+postgres-data/
+.git/
+.idea/
+event-service

@@ -1,12 +1,36 @@
 services:
   postgres:
+    image: postgres:16.4-alpine
     container_name: postgres_go_1M
-    image: postgres:16.4
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      PGDATA: /data/postgres
+      POSTGRES_DB: events
     volumes:
-      - ./postgres-data:/data/postgres
+      - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: go_event_app
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=host=postgres user=postgres password=postgres dbname=events port=5432 sslmode=disable
+      - PORT=8080
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+      - LLM_API_KEY=${LLM_API_KEY}
+    restart: always
+
+volumes:
+  postgres-data:
